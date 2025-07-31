@@ -5,6 +5,9 @@ import sys
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import LatentDirichletAllocation
 
+import matplotlib.pyplot as plt
+from wordcloud import WordCloud
+
 # Terminal color codes for headings (optional)
 c = {"y": '\033[93m', "r": '\033[91m', "g": '\033[92m', "w": '\033[0m'}
 
@@ -24,7 +27,7 @@ def fetch_jira_issues(jira_server, jql):
         response = requests.get(
             f"{jira_server}/rest/api/2/search",
             timeout=20,
-            params={"jql": jql, "maxResults": 50, "fields": "summary,issuetype,components,assignee"},
+            params={"jql": jql, "maxResults": 500, "fields": "summary,issuetype,components,assignee"},
             headers={"Accept": "application/json"}
         )
         response.raise_for_status()
@@ -64,6 +67,19 @@ def analyze_topics(df, n_topics=5, n_top_words=5):
     for idx, words in topics:
         print(f"Topic {idx}: {', '.join(words)}")
 
+    # Plot wordclouds for topics
+    plot_wordclouds(lda, feature_names, n_top_words)
+
+def plot_wordclouds(lda_model, feature_names, n_top_words=10):
+    for topic_idx, topic in enumerate(lda_model.components_):
+        top_words = {feature_names[i]: topic[i] for i in topic.argsort()[:-n_top_words - 1:-1]}
+        wc = WordCloud(width=400, height=200, background_color='white').generate_from_frequencies(top_words)
+        plt.figure(figsize=(8,4))
+        plt.imshow(wc, interpolation='bilinear')
+        plt.axis("off")
+        plt.title(f"Topic {topic_idx + 1} WordCloud")
+        plt.show()
+
 # Step 3 — (Optional) Tag initiatives
 def map_initiatives(summary, mapping):
     tags = []
@@ -77,6 +93,19 @@ def classify_initiatives(df):
     df["initiatives"] = df["summary"].apply(lambda s: map_initiatives(s, INITIATIVES))
     return df
 
+def plot_initiative_counts(df):
+    from collections import Counter
+    all_tags = sum(df['initiatives'].tolist(), [])
+    counts = Counter(all_tags)
+    if counts:
+        labels, values = zip(*counts.items())
+        plt.bar(labels, values, color='skyblue')
+        plt.title("Initiative Tag Counts")
+        plt.ylabel("Number of Issues")
+        plt.show()
+    else:
+        print("No initiative tags found to plot.")
+
 # Run everything
 if __name__ == "__main__":
     print(f"{c['g']}[INFO]{c['w']} Fetching Jira issues...")
@@ -88,5 +117,9 @@ if __name__ == "__main__":
     print(f"{c['g']}[INFO]{c['w']} Tagging initiatives based on keywords...")
     df = classify_initiatives(df)
 
+    # Show bar chart for initiative tag counts
+    plot_initiative_counts(df)
+
     print(f"\n{c['y']}Sample Output:{c['w']}")
     print(df[["key", "type", "summary", "initiatives"]].head(10).to_markdown(index=False))
+
