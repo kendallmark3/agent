@@ -1,0 +1,5 @@
+jira
+pandas
+matplotlib
+scikit-learn
+openpyxl

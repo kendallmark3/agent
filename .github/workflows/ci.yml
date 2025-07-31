@@ -1,0 +1,16 @@
+name: MCP Agent CI
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build Docker image
+        run: docker build -t mcp-jira-agent .
+      - name: Run agent
+        run: docker run --rm -e JIRA_API_TOKEN=${{ secrets.JIRA_API_TOKEN }} mcp-jira-agent
