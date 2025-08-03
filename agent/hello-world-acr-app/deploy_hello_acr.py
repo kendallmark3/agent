@@ -3,8 +3,8 @@ import requests
 import time
 
 # CONFIGURE THESE
-resource_group = "kendallmark"          # Existing resource group in eastus
-registry_name = "kendallmarkrepo"
+resource_group = "yourgroup"          # Existing resource group in eastus
+registry_name = "youregistry"
 image_name = "fastapi-app"
 app_name = "helloacrwebapp"
 app_service_plan_region = "westus"     # Region with quota for App Service Plan

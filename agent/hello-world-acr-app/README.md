@@ -1,4 +1,6 @@
 # Hello World FastAPI on Azure with ACR
+http://helloacrcontainer30562.eastus.azurecontainer.io:8000
+
 
 This project contains a minimal FastAPI app that:
 - Is containerized with Docker
