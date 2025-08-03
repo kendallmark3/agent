@@ -3,16 +3,15 @@ import requests
 import time
 
 # CONFIGURE THESE
-resource_group = "myResourceGroup"
-registry_name = "myacrname"
-image_name = "hello-world-api"
+resource_group = "kendallmark"          # Existing resource group in eastus
+registry_name = "kendallmarkrepo"
+image_name = "fastapi-app"
 app_name = "helloacrwebapp"
-region = "eastus"
+app_service_plan_region = "westus"     # Region with quota for App Service Plan
 
-# Step 1: Create Resource Group
-subprocess.run(["az", "group", "create", "--name", resource_group, "--location", region], check=True)
+# Step 1: SKIP creating resource group because it already exists
 
-# Step 2: Create Azure Container Registry
+# Step 2: Create Azure Container Registry (in the existing resource group)
 subprocess.run(["az", "acr", "create", "--resource-group", resource_group, "--name", registry_name, "--sku", "Basic"], check=True)
 
 # Step 3: Login to ACR
@@ -32,11 +31,12 @@ full_image_name = f"{acr_login_server}/{image_name}:v1"
 subprocess.run(["docker", "build", "-t", full_image_name, "."], check=True)
 subprocess.run(["docker", "push", full_image_name], check=True)
 
-# Step 6: Create App Service Plan
+# Step 6: Create App Service Plan in the region with quota
 subprocess.run([
     "az", "appservice", "plan", "create",
     "--name", f"{app_name}-plan",
     "--resource-group", resource_group,
+    "--location", app_service_plan_region,   # <-- Important: specify region here
     "--is-linux",
     "--sku", "B1"
 ], check=True)
@@ -78,3 +78,4 @@ try:
     print("✅ API Response:", response.status_code, response.json())
 except Exception as e:
     print("❌ Failed to call API:", e)
+
